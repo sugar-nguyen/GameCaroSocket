@@ -1,0 +1,162 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Game caro";
+}
+
+<div id="game_outline">
+    <div id="game_content">
+        <table>
+        </table>
+        <div id="game_footer">
+            <button id="new_game" title="Bắt đầu"><i class="fa fa-play"></i></button>
+            <button id="undo" title="Đánh lại"><i class="fa fa-undo"></i></button>
+            <div id="runtime_wating">
+                <img alt="clock" height="20" src="https://www.flaticon.com/svg/static/icons/svg/2784/2784459.svg" width="20" />
+                <div id="div_runtime"> <span>00:</span><span id="second_runtime">30</span></div>
+            </div>
+        </div>
+    </div>
+    <div id="user_content">
+        <div class="chat_header">
+            Hội thoại
+        </div>
+        <div class="chat_content">
+            <div class="message notifi"><span>notifi</span></div>
+            <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
+            <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>
+            
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script>
+        (function ($) {
+            var Caro = function () {
+                var self = this;
+                this.row_x = 20;
+                this.row_y = 24;
+                this.data = {
+                    array_check: [],
+                    tick: 0
+                };
+                this.render_table = function () {
+                    var str = '';
+                    for (var i = 0; i < this.row_x; i++) {
+                        str += '<tr>';
+                        var arr = [];
+                        for (var j = 0; j < this.row_y; j++) {
+                            str += '<td id="cell_' + i + '_' + j + '" class="cell" data-x="' + i + '" data-y="' + j + '"></td>';
+                            arr.push(false);
+                        }
+                        this.data.array_check.push(arr);
+                        str += '</tr>';
+                    }
+                    var game_content = $('#game_content table');
+                    game_content.html(str);
+                    var cell = $('#game_content .cell');
+                    cell.click(function () {
+                        var a = this;
+                        self.cell_click(a, function (a) {
+                            self.check_win(a)
+                        });
+                    });
+
+                };
+                this.cell_click = function (obj, callback) {
+                    var cell = $(obj);
+                    cell.addClass('cell_active');
+                    if (this.data.tick % 2 === 0) cell.addClass('cell_active_x');
+                    else cell.addClass('cell_active_y');
+
+                    self.data.array_check[cell.attr('data-x')][cell.attr('data-y')] = true;
+                    this.data.tick += 1;
+
+                    if (callback)
+                        callback(obj);
+                };
+                this.check_win = function (obj) {
+                    var cell = $(obj);
+                    var data_x = cell.attr('data-x'), data_y = cell.attr('data-y');
+
+                    var d = 0, k = data_x, h = data_y;
+                    var arr = Array.from(self.data.array_check);
+                    //check row
+                    while (arr[k][h]) {
+                        d++;
+                        h++;
+                    }
+                    h = data_y;
+                    while (arr[k][h]) {
+                        d++;
+                        h--;
+                    }
+                    if (d > 5) {
+                        alert("win");
+                        return;
+                    }
+
+                    //check column
+                    d = 0; h = data_y;
+                    while (arr[k][h]) {
+                        d++;
+                        k++;
+                    }
+                    k = data_x;
+                    while (arr[k][h]) {
+                        d++;
+                        k--;
+                    }
+                    if (d > 5) {
+                        alert("win");
+                        return;
+                    }
+                    //check main diagonal
+                    d = 0; k = data_x; h = data_y;
+                    while (arr[k][h]) {
+                        k--;
+                        h--;
+                        d++;
+                    }
+                    k = data_x; h = data_y;
+                    while (arr[k][h]) {
+                        k++;
+                        h++;
+                        d++;
+                    }
+                    if (d > 5) {
+                        alert("win");
+                        return;
+                    }
+                    //check secondary diagonal
+                    d = 0; k = data_x; h = data_y;
+                    while (arr[k][h]) {
+                        k++;
+                        h--;
+                        d++;
+                    }
+                    k = data_x; h = data_y;
+                    while (arr[k][h]) {
+                        k--;
+                        h++;
+                        d++;
+                    }
+                    if (d > 5) {
+                        alert("win");
+                        return;
+                    }
+                };
+                this.start = function () {
+                    this.render_table();
+                };
+
+                this.start();
+
+            }
+            new Caro();
+        })($);
+    </script>
+
+}

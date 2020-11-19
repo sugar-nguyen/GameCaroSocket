@@ -1,0 +1,172 @@
+﻿:root {
+    --border: #bfbfbf;
+}
+
+body {
+    background: url('../lib/img/bg.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+#game_outline {
+    padding-top: 20px;
+}
+
+#game_content,
+#user_content {
+    float: left;
+}
+
+#game_content {
+    width: fit-content;
+    border: 2px solid #66a6b7;
+    margin-left: 10px;
+    background: #fff;
+    opacity: 0.9;
+    box-shadow: 7px 9px 9px 4px #073b4f;
+}
+
+    #game_content #game_footer {
+        height: 30px;
+        line-height: 30px;
+        background-color: #66a6b7;
+    }
+
+
+
+        #game_content #game_footer #runtime_wating {
+            float: right;
+            width: 70px;
+        }
+
+        #game_content #game_footer button {
+            background: none;
+            border: none;
+            outline: none;
+            color: #0b4b64;
+            height: 10px;
+            width: 10px;
+            line-height: 10px;
+        }
+
+            #game_content #game_footer button#undo {
+                margin-left: 10px;
+            }
+
+            #game_content #game_footer button:active {
+                outline: none;
+            }
+
+            #game_content #game_footer button i {
+                vertical-align: middle;
+            }
+
+            #game_content #game_footer button:active i {
+                font-size: 12px;
+            }
+
+        #game_content #game_footer #runtime_wating #div_runtime {
+            color: #101a24;
+            display: inline;
+            font-weight: bold;
+        }
+
+        #game_content #game_footer #runtime_wating img {
+            vertical-align: middle;
+        }
+
+    #game_content table {
+        /* border: 1px solid #000;*/
+        border-spacing: 0;
+        border-collapse: separate;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+        #game_content table tr td {
+            width: 25px;
+            height: 25px;
+            /* background: linear-gradient(to right,#fff 0,#f6f6f6 47%,#ededed 100%);*/
+            box-sizing: unset;
+        }
+
+            #game_content table tr td:not(:last-child) {
+                border-right: 2px solid var(--border);
+            }
+
+        #game_content table tr td {
+            border-bottom: 2px solid var(--border);
+        }
+
+#user_content {
+    background: #22a4db;
+    height: 400px;
+    width: 300px;
+    margin-left: 200px;
+    border-radius: 20px;
+    opacity: 0.8;
+    box-shadow: 5px 7px 9px 2px #064265;
+    overflow: hidden;
+}
+
+    #user_content .chat_header {
+        height: 30px;
+        line-height: 30px;
+        background: #116589;
+        text-align: center;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    #user_content .chat_content {
+        padding: 5px;
+    }
+
+        #user_content .chat_content .message {
+            width: 100%;
+            color: #ffffff;
+            margin-top: 5px;
+        }
+
+        #user_content .chat_content .notifi {
+            text-align: center;
+            margin: 7px 0 7px 0;
+        }
+
+        #user_content .chat_content .message span {
+            background: #073c50;
+            border-radius: 10px;
+        }
+
+        #user_content .chat_content .message_1 span {
+            padding: 3px 10px 3px 5px;
+            margin-left:3px;
+        }
+
+        #user_content .chat_content .message_2 span {        
+            padding: 3px 5px 3px 10px;
+            margin-right: 3px;
+        }
+        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 i{
+            float: right;
+            line-height:unset;
+        }
+.clear-both{
+    clear:both;
+}
+.cell_active {
+    background-size: 20px 20px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.cell_active_x {
+    background-image: url('../lib/img/red.png') !important;
+}
+
+.cell_active_y {
+    background-image: url('../lib/img/blue.png') !important;
+}
