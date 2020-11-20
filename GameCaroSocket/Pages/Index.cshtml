@@ -25,15 +25,28 @@
             <div class="message notifi"><span>notifi</span></div>
             <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
             <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>
-            
+        </div>
+        <div class="chat_box">
+            <input type="text" id="chat_input" placeholder="Nhập tin nhắn...">
+            <button id="btn_send_message"><i class="fa fa-play"></i></button>
         </div>
     </div>
 </div>
-
+<div id="box_modal">
+    <div class="box_modal_header">header</div>
+    <div class="box_modal_content">content</div>
+     <a href="#" rel="modal:close">Close</a>
+</div>
 
 @section Scripts{
     <script>
         (function ($) {
+
+            $('#box_modal').modal({
+                fadeDuration: 100,
+
+            })
+
             var Caro = function () {
                 var self = this;
                 this.connection;
