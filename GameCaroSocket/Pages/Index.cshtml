@@ -36,11 +36,23 @@
         (function ($) {
             var Caro = function () {
                 var self = this;
+                this.connection;
                 this.row_x = 20;
                 this.row_y = 24;
                 this.data = {
                     array_check: [],
                     tick: 0
+                };
+                this.hub = {
+                    conn: self.connection,
+                    start: function () {
+                        this.conn.start().then(function () {
+                            console.log("bắt đầu request.");
+                        }).catch(function (err) { return console.log(err.toString()); });
+                    },
+                    onUserConnected: function () {
+                        
+                    }
                 };
                 this.render_table = function () {
                     var str = '';
@@ -150,6 +162,8 @@
                 };
                 this.start = function () {
                     this.render_table();
+                    this.connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+                    this.hub.start();
                 };
 
                 this.start();
