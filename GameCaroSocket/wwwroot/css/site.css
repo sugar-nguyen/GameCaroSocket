@@ -108,13 +108,14 @@ body {
     border-radius: 20px;
     opacity: 0.8;
     box-shadow: 5px 7px 9px 2px #064265;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
     #user_content .chat_header {
         height: 30px;
         line-height: 30px;
-        background: #116589;
+        background: #033152;
         text-align: center;
         color: #fff;
         font-size: 20px;
@@ -136,6 +137,14 @@ body {
             margin: 7px 0 7px 0;
         }
 
+            #user_content .chat_content .notifi span {
+                padding: 0 !important;
+                color: #fff;
+                background: none !important;
+                font-style: italic;
+                font-size: 11px;
+            }
+
         #user_content .chat_content .message span {
             background: #073c50;
             border-radius: 10px;
@@ -143,20 +152,23 @@ body {
 
         #user_content .chat_content .message_1 span {
             padding: 3px 10px 3px 5px;
-            margin-left:3px;
+            margin-left: 3px;
         }
 
-        #user_content .chat_content .message_2 span {        
+        #user_content .chat_content .message_2 span {
             padding: 3px 5px 3px 10px;
             margin-right: 3px;
         }
-        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 i{
+
+        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 i {
             float: right;
-            line-height:unset;
+            line-height: unset;
         }
-.clear-both{
-    clear:both;
+
+.clear-both {
+    clear: both;
 }
+
 .cell_active {
     background-size: 20px 20px !important;
     background-position: center !important;
