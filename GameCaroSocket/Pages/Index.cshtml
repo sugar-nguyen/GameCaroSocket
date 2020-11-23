@@ -12,7 +12,7 @@
             <button id="new_game" title="Bắt đầu"><i class="fa fa-play"></i></button>
             <button id="undo" title="Đánh lại"><i class="fa fa-undo"></i></button>
             <div id="runtime_wating">
-                <img alt="clock" height="20" src="https://www.flaticon.com/svg/static/icons/svg/2784/2784459.svg" width="20" />
+                <i class="fa fa-clock"></i>
                 <div id="div_runtime"> <span>00:</span><span id="second_runtime">30</span></div>
             </div>
         </div>
@@ -33,9 +33,21 @@
     </div>
 </div>
 <div id="box_modal">
-    <div class="box_modal_header">header</div>
-    <div class="box_modal_content">content</div>
-     <a href="#" rel="modal:close">Close</a>
+    <div class="box_modal_header">Đăng nhập</div>
+    <div class="box_modal_content container">
+        <div class="form-group">
+            <label>Tên đăng nhập :</label>
+            <input type="text" name="userName" id="userName" value="" autocomplete="off" />
+        </div>
+        <div class="form-group">
+            <label>Phòng :</label>
+            <input type="text" name="room" id="room" value="" autocomplete="off" />
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-lg-12"> <button id="btnLogin">Đăng nhập</button></div>
+        </div>
+    </div>
 </div>
 
 @section Scripts{
@@ -44,28 +56,35 @@
 
             $('#box_modal').modal({
                 fadeDuration: 100,
-
             })
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chathub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            async function startSignal() {
+                try {
+                    await connection.start();
+                    console.log("SignalR Connected.");
+                } catch (err) {
+                    console.log(err);
+                    setTimeout(startSignal, 5000);
+                }
+            };
+
+            startSignal();
 
             var Caro = function () {
                 var self = this;
-                this.connection;
+                var roomId = $('#room');
+                var userName = $('#userName');
+                var btnLogin = $('#btnLogin');
                 this.row_x = 20;
                 this.row_y = 24;
                 this.data = {
                     array_check: [],
                     tick: 0
-                };
-                this.hub = {
-                    conn: self.connection,
-                    start: function () {
-                        this.conn.start().then(function () {
-                            console.log("bắt đầu request.");
-                        }).catch(function (err) { return console.log(err.toString()); });
-                    },
-                    onUserConnected: function () {
-                        
-                    }
                 };
                 this.render_table = function () {
                     var str = '';
@@ -175,15 +194,27 @@
                 };
                 this.start = function () {
                     this.render_table();
-                    this.connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
-                    this.hub.start();
+                    btnLogin.click(function () {
+                        connection.invoke("OnUserConnected", roomId.val(), userName.val()).catch(function (err) { return console.log(err.toString()) });
+                    });
                 };
 
                 this.start();
 
             }
+
             new Caro();
+            registerHubMethod(connection);
         })($);
+
+        function registerHubMethod(conn) {
+            conn.on('onUserCreateRoom', function (roomId, player) {
+                console.log("room:" + roomId + "  player: " + player.userName);
+            });
+            conn.on('roomIdNotExists', function () {
+                console.log('Phòng không tồn tại.');
+            })
+        }
     </script>
 
 }

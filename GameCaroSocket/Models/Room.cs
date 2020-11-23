@@ -9,6 +9,11 @@ namespace GameCaroSocket.Models
     {
         public string RoomId { get; set; }
         public List<Player> Players { get; set; }
+
+        public Room()
+        {
+            Players = new List<Player>();
+        }
         
     }
 }

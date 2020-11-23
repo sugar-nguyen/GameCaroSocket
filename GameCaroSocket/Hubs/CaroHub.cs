@@ -18,15 +18,15 @@ namespace GameCaroSocket.Hubs
             {
                 string id = Context.ConnectionId;
                 string[] arrId = _Rooms.Any() ? _Rooms.Select(x => x.RoomId).ToArray() : null;
-                roomId = await GeneratorId(arrId);
-                var player = new Player() { UserId = id, RoomId = roomId, UserName = username, IsBoss = true };
+                string _roomId = await GeneratorId(arrId);
+                var player = new Player() { UserId = id, RoomId = _roomId, UserName = username, IsBoss = true };
                 var curRoom = new Room();
-                curRoom.RoomId = roomId;
+                curRoom.RoomId = _roomId;
                 curRoom.Players.Add(player);
                 _Rooms.Add(curRoom);
 
-                await Groups.AddToGroupAsync(id, roomId);
-                await Clients.Caller.onUserCreateRoom(roomId, player);
+                await Groups.AddToGroupAsync(id, _roomId);
+                await Clients.Caller.onUserCreateRoom(_roomId, player);
             }
             else
             {
