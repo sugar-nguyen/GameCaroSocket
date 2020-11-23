@@ -19,7 +19,7 @@
     </div>
     <div id="user_content">
         <div class="chat_header">
-            Hội thoại
+            Hội thoại phòng 
         </div>
         <div class="chat_content">
             <div class="message notifi"><span>notifi</span></div>
@@ -43,6 +43,7 @@
             <label>Phòng :</label>
             <input type="text" name="room" id="room" value="" autocomplete="off" />
         </div>
+        <p id="login_msg"></p>
         <hr />
         <div class="row">
             <div class="col-lg-12"> <button id="btnLogin">Đăng nhập</button></div>
@@ -52,11 +53,16 @@
 
 @section Scripts{
     <script>
+        var $login_msg = $('#login_msg');
+        var $jmodal = $('#box_modal');
+
         (function ($) {
 
             $('#box_modal').modal({
                 fadeDuration: 100,
             })
+
+           
 
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chathub")
@@ -208,11 +214,14 @@
         })($);
 
         function registerHubMethod(conn) {
+            
+
             conn.on('onUserCreateRoom', function (roomId, player) {
-                console.log("room:" + roomId + "  player: " + player.userName);
+                $('.chat_header').html('Hội thoại phòng ' + roomId);
+                $.modal.close();
             });
             conn.on('roomIdNotExists', function () {
-                console.log('Phòng không tồn tại.');
+              $login_msg.html('Phòng không tồn tại.');
             })
         }
     </script>
