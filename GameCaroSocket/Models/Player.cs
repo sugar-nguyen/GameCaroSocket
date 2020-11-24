@@ -11,5 +11,10 @@ namespace GameCaroSocket.Models
         public string UserName { get; set; }
         public string RoomId { get; set; }
         public bool IsBoss { get; set; }
+
+        public static explicit operator Player(bool v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

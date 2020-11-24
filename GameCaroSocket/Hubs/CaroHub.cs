@@ -43,11 +43,12 @@ namespace GameCaroSocket.Hubs
                         if (player == null)
                         {
                             player = new Player() { RoomId = curRoom.RoomId, UserName = username, UserId = Context.ConnectionId, IsBoss = false };
+                            var playerBoss = curRoom.Players.First();
                             curRoom.Players.Add(player);
 
                             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-                            await Clients.Clients(curRoom.Players.First().UserId).addUserToRoom(roomId, curRoom.Players.First(), player);
-                            await Clients.Caller.addUserToRoom(roomId, player, curRoom.Players.First(), true);
+                            await Clients.Client(playerBoss.UserId).onGuessJoinRoom(roomId, player, playerBoss);
+                            await Clients.Caller.onCallerJoinRoom(roomId, player, playerBoss);
                         }
                         else
                         {
@@ -64,6 +65,40 @@ namespace GameCaroSocket.Hubs
 
         }
 
+        public async Task SendPrivateMessage(string message)
+        {
+            var room = GetRoom();
+            if (room.Players.Count == 2)
+            {
+                Player player = GetCaller();
+                Player player2 = GetOrtherPlayer(player, room);
+
+                await Clients.Caller.onUserSendMessage(player, player2, message);
+                await Clients.Client(player2.UserId).onUserSendMessage(player2, player, message, false);
+            }
+        }
+
+        private Player GetCaller()
+        {
+            return _Rooms.SelectMany(x => x.Players.Where(x => x.UserId.Equals(Context.ConnectionId))).Single();
+        }
+        private Player GetOrtherPlayer(Player player, Room room)
+        {
+            if (room.Players.Count == 1)
+            {
+                return null;
+            }
+
+            Player player2 = room.Players.Last();
+            if (player2.UserId == player.UserId) player2 = room.Players.First();
+            return player2;
+        }
+        private Room GetRoom()
+        {
+            return _Rooms.Single(x => x.Players.Any(y => y.UserId == Context.ConnectionId));
+        }
+
+
         private async Task<string> GeneratorId(string[] arr)
         {
             string myString = "0123456789";
@@ -76,6 +111,29 @@ namespace GameCaroSocket.Hubs
                 return await GeneratorId(arr);
             }
             return result;
+        }
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            var room = GetRoom();
+            var caller = GetCaller();
+            _Rooms.ForEach(x => x.Players.Remove(x.Players.Single(y => y.UserId == Context.ConnectionId)));
+            RemoveRoom();
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, room.RoomId);
+            await Clients.Group(room.RoomId).onUserDisConnected(caller);
+
+            await base.OnDisconnectedAsync(exception);
+        }
+        private void RemoveRoom()
+        {
+            var Rooms = new List<Room>(_Rooms);
+            foreach (var room in Rooms)
+            {
+                if (room.Players.Count == 0)
+                {
+                    _Rooms.Remove(room);
+                }
+            }
         }
     }
 }

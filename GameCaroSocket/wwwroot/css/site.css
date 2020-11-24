@@ -15,8 +15,19 @@ body {
 }
 
 #game_content,
+#user_game_icon,
 #user_content {
     float: left;
+}
+
+#user_game_icon {
+    margin-left: 30px;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 10px;
+    opacity: 0.7;
+    color: #03314e;
+    font-weight: bold;
 }
 
 #game_content {
@@ -125,12 +136,18 @@ body {
     #user_content .chat_content {
         padding: 5px;
         height: 370px;
+        overflow: auto;
     }
+
+        #user_content .chat_content::-webkit-scrollbar {
+            width: 0;
+        }
 
         #user_content .chat_content .message {
             width: 100%;
             color: #ffffff;
-            margin-top: 5px;
+            padding-top: 10px;
+            clear: both;
         }
 
         #user_content .chat_content .notifi {
@@ -147,8 +164,25 @@ body {
             }
 
         #user_content .chat_content .message span {
-            background: #073c50;
             border-radius: 10px;
+            max-width: 80%;
+            word-break: break-all;
+        }
+
+        #user_content .chat_content .message_1 span {
+            background: #0c5b88;
+        }
+
+        #user_content .chat_content .message_2 span {
+            background: #073c50;
+        }
+
+        #user_content .chat_content .message_1 .fa {
+            color: red;
+        }
+
+        #user_content .chat_content .message_2 .fa {
+            color: #e5ff0e;
         }
 
         #user_content .chat_content .message_1 span {
@@ -156,12 +190,17 @@ body {
             margin-left: 3px;
         }
 
+        #user_content .chat_content .message_1 span, #user_content .chat_content .message_1 .fa {
+            float: left;
+            line-height: unset;
+        }
+
         #user_content .chat_content .message_2 span {
             padding: 3px 5px 3px 10px;
             margin-right: 3px;
         }
 
-        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 i {
+        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 .fa {
             float: right;
             line-height: unset;
         }
@@ -227,7 +266,7 @@ body {
     height: 215px;
     padding: 0;
     width: 430px;
-    border-radius:unset;
+    border-radius: unset;
 }
 
     #box_modal a.close-modal {
@@ -247,9 +286,9 @@ body {
         padding: 10px;
     }
 
-    #box_modal .box_modal_content .form-group:first-child{
-        margin-bottom: 0;
-    }
+        #box_modal .box_modal_content .form-group:first-child {
+            margin-bottom: 0;
+        }
 
         #box_modal .box_modal_content label {
             font-size: 12px;
@@ -274,13 +313,14 @@ body {
         }
 
             #box_modal .box_modal_content button:focus {
-                border:0;
-                outline:none;
+                border: 0;
+                outline: none;
             }
-            #box_modal .box_modal_content #login_msg{
-                margin: 0;
-                font-size: 12px;
-                color: red;
-                margin-left: 3px;
-                position: fixed;
-            }
+
+        #box_modal .box_modal_content #login_msg {
+            margin: 0;
+            font-size: 12px;
+            color: red;
+            margin-left: 3px;
+            position: fixed;
+        }

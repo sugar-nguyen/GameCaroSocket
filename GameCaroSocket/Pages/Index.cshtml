@@ -17,14 +17,24 @@
             </div>
         </div>
     </div>
+    <div id="user_game_icon">
+        <div class="user_boss">
+            <i class="fa fa-user-tie"></i>&nbsp;<span class="name"></span>
+            <img src="/lib/img/blue.png" alt="" />
+        </div>
+        <div class="user_guess">
+            <i class="fa fa-user-tie"></i>&nbsp;<span class="name"></span>
+            <img src="/lib/img/red.png" alt="" />
+        </div>
+    </div>
     <div id="user_content">
         <div class="chat_header">
-            Hội thoại phòng 
+            Hội thoại phòng
         </div>
         <div class="chat_content">
-            <div class="message notifi"><span>notifi</span></div>
-            <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
-            <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>
+            @*<div class="message notifi"><span></span></div>
+                <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
+                <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>*@
         </div>
         <div class="chat_box">
             <input type="text" id="chat_input" placeholder="Nhập tin nhắn...">
@@ -55,14 +65,28 @@
     <script>
         var $login_msg = $('#login_msg');
         var $jmodal = $('#box_modal');
+        var $chat_header = $('.chat_header');
+        var $chat_content = $('#user_content .chat_content');
+        var $message = $('#chat_input');
+        var $user_icon_1 = $('#user_game_icon .user_boss .name');
+        var $user_icon_2 = $('#user_game_icon .user_guess .name');
+        var btnSendMsg = $('#btn_send_message');
+        var chat_notifi = function (message) {
+            return '<div class="message notifi"><span>' + message + '</span></div>';
+        };
+        var chat_message = function (fromP, toP, message, isCaller) {
+            if (isCaller) {
+                return ' <div class="message message_2" title="' + fromP.userName + '"><i class="fa fa-user-tie"></i><span>' + message + '</span></div>';
+            }
+            return '<div class="message message_1" title="' + toP.userName + '"><i class="fa fa-user"></i><span>' + message + '</span></div>';
+        };
+
 
         (function ($) {
 
             $('#box_modal').modal({
                 fadeDuration: 100,
             })
-
-           
 
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/chathub")
@@ -203,6 +227,17 @@
                     btnLogin.click(function () {
                         connection.invoke("OnUserConnected", roomId.val(), userName.val()).catch(function (err) { return console.log(err.toString()) });
                     });
+                    btnSendMsg.click(function () {
+                        if ($message.val() !== '') {
+                            connection.invoke("SendPrivateMessage", $message.val()).catch(function (err) { return console.log(err.toString()) });
+                        }
+                    });
+                    $message.on('keyup', function (e) {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            btnSendMsg.click();
+                        }
+                    })
                 };
 
                 this.start();
@@ -214,15 +249,47 @@
         })($);
 
         function registerHubMethod(conn) {
-            
 
             conn.on('onUserCreateRoom', function (roomId, player) {
-                $('.chat_header').html('Hội thoại phòng ' + roomId);
-                $.modal.close();
+                setUp(roomId, player);
+
             });
             conn.on('roomIdNotExists', function () {
-              $login_msg.html('Phòng không tồn tại.');
+                $login_msg.html('Phòng không tồn tại.');
+            });
+            conn.on('overflowMember', function () {
+                $login_msg.html('Phòng chơi đã đầy người.');
+            });
+            conn.on('onCallerJoinRoom', function (roomid, caller, boss) {
+                setUp(roomid, caller, boss);
+            });
+            conn.on('onGuessJoinRoom', function (roomid, caller, boss) {
+                setUp(roomid, boss, caller);
+                $chat_content.append(chat_notifi(caller.userName + ' đã vào phòng.'));
+            });
+            conn.on('onUserSendMessage', function (fromPlayer, toPlayer, msg, isCaller) {
+                var message = chat_message(fromPlayer, toPlayer, msg, isCaller);
+                $chat_content.append(message);
+                $message.val('');
+                $chat_content.animate({ scrollTop: $chat_content[0].scrollHeight });
+            });
+            conn.on('onUserDisConnected', function (player) {
+                $chat_content.append(chat_notifi(player.userName + ' đã rời khỏi phòng'));
+                $user_icon_2.text('');
             })
+        }
+
+        function setUp(roomId, boss, guess = null) {
+            $chat_header.html('Hội thoại phòng ' + roomId);
+
+            if ($user_icon_1.text() === '') {
+                $user_icon_1.text(boss.userName)
+                if (guess !== null) $user_icon_2.text(guess.userName);
+            } else {
+                $user_icon_2.text(guess.userName);
+            }
+
+            $.modal.close();
         }
     </script>
 
