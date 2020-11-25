@@ -11,7 +11,7 @@ namespace GameCaroSocket.Hubs
     {
         static List<Room> _Rooms = new List<Room>();
         const int MEMBER_IN_ROOM = 2;
-
+        #region chat và config
         public async Task OnUserConnected(string roomId, string username)
         {
             if (string.IsNullOrEmpty(roomId))
@@ -67,20 +67,28 @@ namespace GameCaroSocket.Hubs
 
         public async Task SendPrivateMessage(string message)
         {
-            var room = GetRoom();
-            if (room.Players.Count == 2)
+            try
             {
-                Player player = GetCaller();
-                Player player2 = GetOrtherPlayer(player, room);
+                var room = GetRoom();
+                if (room.Players.Count == 2)
+                {
+                    Player player = GetCaller();
+                    Player player2 = GetOrtherPlayer(player, room);
 
-                await Clients.Caller.onUserSendMessage(player, player2, message);
-                await Clients.Client(player2.UserId).onUserSendMessage(player2, player, message, false);
+                    await Clients.Caller.onUserSendMessage(player, player2, message);
+                    await Clients.Client(player2.UserId).onUserSendMessage(player2, player, message, false);
+                }
             }
+            catch
+            {
+                //ignore trường hợp room lỗi.
+            }
+
         }
 
         private Player GetCaller()
         {
-            return _Rooms.SelectMany(x => x.Players.Where(x => x.UserId.Equals(Context.ConnectionId))).Single();
+            return _Rooms.SelectMany(x => x.Players.Where(x => x.UserId.Equals(Context.ConnectionId))).SingleOrDefault();
         }
         private Player GetOrtherPlayer(Player player, Room room)
         {
@@ -95,9 +103,8 @@ namespace GameCaroSocket.Hubs
         }
         private Room GetRoom()
         {
-            return _Rooms.Single(x => x.Players.Any(y => y.UserId == Context.ConnectionId));
+            return _Rooms.SingleOrDefault(x => x.Players.Any(y => y.UserId == Context.ConnectionId));
         }
-
 
         private async Task<string> GeneratorId(string[] arr)
         {
@@ -115,13 +122,23 @@ namespace GameCaroSocket.Hubs
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             var room = GetRoom();
-            var caller = GetCaller();
-            _Rooms.ForEach(x => x.Players.Remove(x.Players.Single(y => y.UserId == Context.ConnectionId)));
-            RemoveRoom();
+            if (room != null)
+            {
+                var caller = GetCaller();
+                //Remove player
+                _Rooms.ForEach(x => x.Players.Remove(x.Players.Single(y => y.UserId == Context.ConnectionId)));
 
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, room.RoomId);
-            await Clients.Group(room.RoomId).onUserDisConnected(caller);
+                if (room.Players.Any())
+                {
+                    // đổi player còn lại thành chủ phòng
+                    room.Players.ForEach(x => x.IsBoss = true);
+                }
+                //remove room nếu phòng không còn player.
+                RemoveRoom();
 
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, room.RoomId);
+                await Clients.Group(room.RoomId).onUserDisConnected(caller);
+            }
             await base.OnDisconnectedAsync(exception);
         }
         private void RemoveRoom()
@@ -135,5 +152,37 @@ namespace GameCaroSocket.Hubs
                 }
             }
         }
+        public async Task PlayGame()
+        {
+            var room = GetRoom();
+
+            if (room != null && room.Players.Count == 2)
+            {
+                await Clients.Group(GetRoom().RoomId).playGame();
+            }
+
+        }
+        #endregion
+
+        #region caro
+        public async Task OnUserPickChess(string coordinates, string callerWinCoordinate)
+        {
+            var player = GetCaller();
+            var room = GetRoom();
+            var ortherPlayer = GetOrtherPlayer(player, room);
+
+            await Clients.Client(ortherPlayer.UserId).onUserPickChess(player, coordinates);
+            //  await Clients.Caller.onUserPickChess(player, coordinates);
+            if (!string.IsNullOrEmpty(callerWinCoordinate))
+            {
+                await Clients.Group(room.RoomId).onUserWin(player, ortherPlayer, callerWinCoordinate);
+            }
+            else
+            {
+                await Clients.Group(room.RoomId).startRuntime();
+              //  await Clients.Group(room.RoomId).restartRuntime();
+            }
+        }
+        #endregion
     }
 }

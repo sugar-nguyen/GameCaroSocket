@@ -31,5 +31,13 @@ namespace GameCaroSocket.Hubs
         Task roomIdNotExists();
         Task onUserSendMessage(Player fromPlayer, Player toPlayer, string msg, bool isCaller = true);
         Task onUserDisConnected(Player player);
+        Task playGame();
+
+        #region Caro
+        Task onUserPickChess(Player caller, string coordinates);
+        Task onUserWin(Player playerWin, Player playerLost, string arrCoordinate);
+        Task startRuntime();
+        Task restartRuntime();
+        #endregion
     }
 }

@@ -9,11 +9,11 @@
         <table>
         </table>
         <div id="game_footer">
-            <button id="new_game" title="Bắt đầu"><i class="fa fa-play"></i></button>
+            <button id="new_game" title="Bắt đầu" disabled><i class="fa fa-play"></i></button>
             <button id="undo" title="Đánh lại"><i class="fa fa-undo"></i></button>
             <div id="runtime_wating">
                 <i class="fa fa-clock"></i>
-                <div id="div_runtime"> <span>00:</span><span id="second_runtime">30</span></div>
+                <div id="div_runtime"> <span>00:</span><span id="second_runtime"></span></div>
             </div>
         </div>
     </div>
@@ -46,11 +46,11 @@
     <div class="box_modal_header">Đăng nhập</div>
     <div class="box_modal_content container">
         <div class="form-group">
-            <label>Tên đăng nhập :</label>
-            <input type="text" name="userName" id="userName" value="" autocomplete="off" />
+            <label>Tên người chơi :</label>
+            <input type="text" name="userName" id="userName" value="" autofocus autocomplete="off" />
         </div>
         <div class="form-group">
-            <label>Phòng :</label>
+            <label>Phòng:&nbsp;<i>(Bỏ trống nếu bạn là chủ phòng)</i></label>
             <input type="text" name="room" id="room" value="" autocomplete="off" />
         </div>
         <p id="login_msg"></p>
@@ -63,6 +63,10 @@
 
 @section Scripts{
     <script>
+        var $btn_play_game = $('#new_game');
+        var $game_content = $('#game_content');
+        var $game_content_table = $('#game_content table');
+        var $runtime_second = $('#second_runtime');
         var $login_msg = $('#login_msg');
         var $jmodal = $('#box_modal');
         var $chat_header = $('.chat_header');
@@ -81,40 +85,203 @@
             return '<div class="message message_1" title="' + toP.userName + '"><i class="fa fa-user"></i><span>' + message + '</span></div>';
         };
 
-
         (function ($) {
 
             $('#box_modal').modal({
                 fadeDuration: 100,
+                clickClose: false,
+                //escapeClose: false,
+                //showClose: false,
+                fadeDelay: 0.50
             })
 
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chathub")
-                .configureLogging(signalR.LogLevel.Information)
-                .build();
-
-            async function startSignal() {
-                try {
-                    await connection.start();
-                    console.log("SignalR Connected.");
-                } catch (err) {
-                    console.log(err);
-                    setTimeout(startSignal, 5000);
-                }
-            };
-
-            startSignal();
 
             var Caro = function () {
                 var self = this;
+                this.row_x = 20;
+                this.row_y = 24;
                 var roomId = $('#room');
                 var userName = $('#userName');
                 var btnLogin = $('#btnLogin');
-                this.row_x = 20;
-                this.row_y = 24;
+                var connection;
+                this.start_signal = async function () {
+                    try {
+                        await connection.start();
+                        console.log("SignalR Connected.");
+                    } catch (err) {
+                        console.log(err);
+                        setTimeout(startSignal, 5000);
+                    }
+                };
+                this.register_hub_method = function (conn) {
+                    conn.on('onUserCreateRoom', function (roomId, player) {
+                        self.setup(roomId, player);
+                    });
+                    conn.on('roomIdNotExists', function () {
+                        $login_msg.html('Phòng không tồn tại.');
+                    });
+                    conn.on('overflowMember', function () {
+                        $login_msg.html('Phòng chơi đã đầy người.');
+                    });
+                    conn.on('onCallerJoinRoom', function (roomid, caller, boss) {
+                        self.setup(roomid, caller, boss);
+                    });
+                    conn.on('onGuessJoinRoom', function (roomid, caller, boss) {
+                        self.setup(roomid, boss, caller);
+                        $chat_content.append(chat_notifi(caller.userName + ' đã vào phòng.'));
+                        $btn_play_game.removeAttr('disabled');
+                        self.data.my_turn = true;// bật lượt chơi của chủ phòng
+                    });
+                    conn.on('playGame', function () {
+
+                        if (!self.data.game_playing) {
+                            self.data.game_playing = true;
+                            $game_content.css({ 'opacity': '0.9' });
+                            $runtime_second.html(self.runtime.runtime_second);
+                            //clear table
+                            $.each($game_content_table.find('td'), function (key, item) {
+                                $(item).removeClass('cell_active cell_active_x cell_active_y cell_active_win');
+                            });
+                            //clear array_check
+                            for (var i = 0; i < self.row_x; i++) {
+                                for (var j = 0; j < self.row_y; j++) {
+                                    self.data.array_check[i][j] = false;
+                                }
+                            }
+                        }
+
+                    });
+                    conn.on('onUserSendMessage', function (fromPlayer, toPlayer, msg, isCaller) {
+                        var message = chat_message(fromPlayer, toPlayer, msg, isCaller);
+                        $chat_content.append(message);
+                        $message.val('');
+                        $chat_content.animate({ scrollTop: $chat_content[0].scrollHeight });
+                    });
+                    conn.on('onUserDisConnected', function (player) {
+                        $chat_content.append(chat_notifi(player.userName + ' đã rời khỏi phòng'));
+                        $user_icon_2.text('');
+                        if (!player.isBoss) { // nếu ng out k phải chủ phòng thì disabled nút play.
+                            $btn_play_game.attr('disabled', 'disabled');
+                        }
+                        $game_content.css({ 'opacity': '0.3' });
+                    });
+                    conn.on('userNameExists', function () {
+                        $login_msg.html('Tên người chơi đã được sử dụng.');
+                    });
+
+                    conn.on('onUserPickChess', function (caller, id) {
+                        $game_content_table.find('td#' + id).addClass('cell_active cell_active_y');
+                        self.data.my_turn = true; // bật lượt chơi của đối phương
+                    });
+
+                    conn.on('onUserWin', function (uWin, uLost, arrCoordinates) {
+
+                        if (uWin.userName.toUpperCase() === $user_icon_1.text().toUpperCase()) {
+                            self.data.my_turn = true; // ai win thì đánh trước
+                        } else {
+                            self.data.my_turn = false;
+                        }
+
+                        var arr = arrCoordinates.split('|');
+                        $.each(arr, function (key, item) {
+                            $game_content_table.find('td#' + item).addClass('cell_active_win');
+                        });
+
+                        clearInterval(self.runtime.runtime_interval);
+
+                        self.data.game_playing = false;
+
+                    });
+
+                    conn.on('startRuntime', function () {
+
+                        if (self.runtime.runtime_interval !== '') {
+                            clearInterval(self.runtime.runtime_interval);
+                        }
+
+                        self.runtime.runtime_second = 30;
+                        self.runtime.runtime_interval = setInterval(function () {
+                            var second = self.runtime.runtime_second;
+
+                            if (second < 10) {
+                                second = '0' + second;
+                            }
+
+                            $runtime_second.html(second);
+                            self.runtime.runtime_second--;
+
+                            if (self.runtime.runtime_second < 0) {
+                                clearInterval(self.runtime.runtime_interval);
+                                var cell = self.data.random_coordinates(self.data.array_check);
+                                if (cell === '') {
+                                    alert('Game over.');
+                                }
+                                $(cell).click();
+                            }
+
+                        }, 1000);
+
+                    });
+
+
+                };
+                this.register_event = function () {
+                    btnLogin.click(function (e) {
+                        e.preventDefault();
+                        if (userName.val() === '') return;
+                        else if (userName.val().length > 10) {
+                            $login_msg.html("Tên quá dài.");
+                            return;
+                        }
+                        connection.invoke("OnUserConnected", roomId.val(), userName.val()).catch(function (err) { return console.log(err.toString()) });
+                    });
+                    btnSendMsg.click(function () {
+                        if ($message.val() !== '') {
+                            connection.invoke("SendPrivateMessage", $message.val()).catch(function (err) { return console.log(err.toString()) });
+                        }
+                    });
+                    $message.on('keyup', function (e) {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            btnSendMsg.click();
+                        }
+                    });
+
+                    (userName, roomId).on('keyup', function (e) {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            btnLogin.click();
+                        }
+                    });
+
+                    $btn_play_game.click(function () {
+                        connection.invoke("PlayGame").catch(function (err) { return console.log(err.toString()) });
+                    });
+
+                };
+                this.runtime = {
+                    runtime_second: 5,
+                    runtime_interval: ''
+                };
                 this.data = {
                     array_check: [],
-                    tick: 0
+                    my_turn: false,
+                    game_playing: false,
+                    random_coordinates: function (arr) {
+                        var isAllTick = Array.from($game_content_table.find('td')).every(td => $(td).hasClass('cell_active'));
+
+                        if (isAllTick) {
+                            return '';
+                        }
+                        var x = Math.floor(Math.random() * Math.floor(self.row_x));
+                        var y = Math.floor(Math.random() * Math.floor(self.row_y));
+                        debugger;
+                        var id = '#cell_' + x + '_' + y;
+                        if ($(id).hasClass('cell_active')) {
+                            return this.random_coordinates(arr);
+                        }
+                        return id;
+                    }
                 };
                 this.render_table = function () {
                     var str = '';
@@ -128,31 +295,54 @@
                         this.data.array_check.push(arr);
                         str += '</tr>';
                     }
+
                     var game_content = $('#game_content table');
                     game_content.html(str);
+
                     var cell = $('#game_content .cell');
                     cell.click(function () {
-                        var a = this;
-                        self.cell_click(a, function (a) {
-                            self.check_win(a)
-                        });
+                        self.cell_click(this);
                     });
 
                 };
-                this.cell_click = function (obj, callback) {
-                    var cell = $(obj);
-                    cell.addClass('cell_active');
-                    if (this.data.tick % 2 === 0) cell.addClass('cell_active_x');
-                    else cell.addClass('cell_active_y');
+                this.cell_click = function (obj) {
 
-                    self.data.array_check[cell.attr('data-x')][cell.attr('data-y')] = true;
-                    this.data.tick += 1;
+                    if (this.data.game_playing) {
+                        if (this.data.my_turn) {
+                            var cell = $(obj);
+                            cell.addClass('cell_active cell_active_x');
+                            self.data.array_check[cell.attr('data-x')][cell.attr('data-y')] = true;
+                            var arrCoordinatesWin = self.check_win(obj);
+                            var arrTmp = '';
+                            if (arrCoordinatesWin.length) {
+                                arrTmp = arrCoordinatesWin.join('|');
+                            }
 
-                    if (callback)
-                        callback(obj);
+                            connection.invoke("OnUserPickChess", cell.attr('id'), arrTmp).catch(function (err) { return console.log(err.toString()) });
+                            this.data.my_turn = false;
+
+
+                        }
+                    }
+
+                };
+                this.setup = function (roomId, boss, guess = null) {
+                    $chat_header.html('Hội thoại phòng ' + roomId);
+
+                    if ($user_icon_1.text() === '') {
+                        $user_icon_1.text(boss.userName)
+                        if (guess !== null) $user_icon_2.text(guess.userName);
+                    } else {
+                        $user_icon_2.text(guess.userName);
+                    }
+
+                    $runtime_second.html(self.runtime.runtime_second);
+                    $.modal.close();
+
                 };
                 this.check_win = function (obj) {
                     var cell = $(obj);
+                    var arrCoordinate = [];
                     var data_x = cell.attr('data-x'), data_y = cell.attr('data-y');
 
                     var d = 0, k = data_x, h = data_y;
@@ -160,84 +350,85 @@
                     //check row
                     while (arr[k][h]) {
                         d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         h++;
                     }
                     h = data_y;
                     while (arr[k][h]) {
                         d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         h--;
                     }
                     if (d > 5) {
-                        alert("win");
-                        return;
+                        return arrCoordinate;
                     }
 
                     //check column
-                    d = 0; h = data_y;
+                    d = 0; h = data_y, arrCoordinate.length = 0;
                     while (arr[k][h]) {
                         d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         k++;
                     }
                     k = data_x;
                     while (arr[k][h]) {
                         d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         k--;
                     }
                     if (d > 5) {
-                        alert("win");
-                        return;
+                        return arrCoordinate;
                     }
                     //check main diagonal
-                    d = 0; k = data_x; h = data_y;
+                    d = 0; k = data_x; h = data_y, arrCoordinate.length = 0;
                     while (arr[k][h]) {
+                        arrCoordinate.push('cell_' + k + "_" + h);
+                        d++;
                         k--;
                         h--;
-                        d++;
                     }
                     k = data_x; h = data_y;
                     while (arr[k][h]) {
+                        arrCoordinate.push('cell_' + k + "_" + h);
+                        d++;
                         k++;
                         h++;
-                        d++;
                     }
                     if (d > 5) {
-                        alert("win");
-                        return;
+                        return arrCoordinate;
                     }
                     //check secondary diagonal
-                    d = 0; k = data_x; h = data_y;
+                    d = 0; k = data_x; h = data_y, arrCoordinate.length = 0;
                     while (arr[k][h]) {
+                        d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         k++;
                         h--;
-                        d++;
                     }
                     k = data_x; h = data_y;
                     while (arr[k][h]) {
+                        d++;
+                        arrCoordinate.push('cell_' + k + "_" + h);
                         k--;
                         h++;
-                        d++;
                     }
                     if (d > 5) {
-                        alert("win");
-                        return;
+                        return arrCoordinate;
                     }
+
+                    return [];
                 };
                 this.start = function () {
                     this.render_table();
-                    btnLogin.click(function () {
-                        connection.invoke("OnUserConnected", roomId.val(), userName.val()).catch(function (err) { return console.log(err.toString()) });
-                    });
-                    btnSendMsg.click(function () {
-                        if ($message.val() !== '') {
-                            connection.invoke("SendPrivateMessage", $message.val()).catch(function (err) { return console.log(err.toString()) });
-                        }
-                    });
-                    $message.on('keyup', function (e) {
-                        if (e.keyCode === 13) {
-                            e.preventDefault();
-                            btnSendMsg.click();
-                        }
-                    })
+
+                    connection = new signalR.HubConnectionBuilder()
+                        .withUrl("/chathub")
+                        .configureLogging(signalR.LogLevel.Information)
+                        .build();
+                    this.start_signal();
+                    this.register_hub_method(connection);
+                    this.register_event();
+
                 };
 
                 this.start();
@@ -245,52 +436,10 @@
             }
 
             new Caro();
-            registerHubMethod(connection);
+            // registerHubMethod(connection);
         })($);
 
-        function registerHubMethod(conn) {
 
-            conn.on('onUserCreateRoom', function (roomId, player) {
-                setUp(roomId, player);
-
-            });
-            conn.on('roomIdNotExists', function () {
-                $login_msg.html('Phòng không tồn tại.');
-            });
-            conn.on('overflowMember', function () {
-                $login_msg.html('Phòng chơi đã đầy người.');
-            });
-            conn.on('onCallerJoinRoom', function (roomid, caller, boss) {
-                setUp(roomid, caller, boss);
-            });
-            conn.on('onGuessJoinRoom', function (roomid, caller, boss) {
-                setUp(roomid, boss, caller);
-                $chat_content.append(chat_notifi(caller.userName + ' đã vào phòng.'));
-            });
-            conn.on('onUserSendMessage', function (fromPlayer, toPlayer, msg, isCaller) {
-                var message = chat_message(fromPlayer, toPlayer, msg, isCaller);
-                $chat_content.append(message);
-                $message.val('');
-                $chat_content.animate({ scrollTop: $chat_content[0].scrollHeight });
-            });
-            conn.on('onUserDisConnected', function (player) {
-                $chat_content.append(chat_notifi(player.userName + ' đã rời khỏi phòng'));
-                $user_icon_2.text('');
-            })
-        }
-
-        function setUp(roomId, boss, guess = null) {
-            $chat_header.html('Hội thoại phòng ' + roomId);
-
-            if ($user_icon_1.text() === '') {
-                $user_icon_1.text(boss.userName)
-                if (guess !== null) $user_icon_2.text(guess.userName);
-            } else {
-                $user_icon_2.text(guess.userName);
-            }
-
-            $.modal.close();
-        }
     </script>
 
 }

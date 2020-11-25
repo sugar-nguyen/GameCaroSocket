@@ -12,32 +12,40 @@ body {
 
 #game_outline {
     padding-top: 20px;
+    clear:both;
+    min-width:1366px;
 }
 
 #game_content,
-#user_game_icon,
-#user_content {
+#user_game_icon
+{
     float: left;
 }
 
 #user_game_icon {
     margin-left: 30px;
     background: #ffffff;
-    padding: 10px;
     border-radius: 10px;
     opacity: 0.7;
     color: #03314e;
     font-weight: bold;
+    min-width: 120px;
 }
+
+    #user_game_icon .user_boss, #user_game_icon .user_guess {
+        padding: 5px 10px 5px 10px;
+    }
 
 #game_content {
     width: fit-content;
     border: 2px solid #66a6b7;
     margin-left: 10px;
     background: #fff;
-    opacity: 0.9;
+    opacity: 0.3;
     box-shadow: 7px 9px 9px 4px #073b4f;
+    position: relative;
 }
+
 
     #game_content #game_footer {
         height: 30px;
@@ -114,13 +122,14 @@ body {
 #user_content {
     background: #22a4db;
     width: 300px;
-    margin-left: 200px;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     opacity: 0.8;
     box-shadow: 5px 7px 9px 2px #064265;
     overflow-x: hidden;
     overflow-y: auto;
+    float:right;
+    margin-right:20px;
 }
 
     #user_content .chat_header {
@@ -153,6 +162,7 @@ body {
         #user_content .chat_content .notifi {
             text-align: center;
             margin: 7px 0 7px 0;
+            padding: 0;
         }
 
             #user_content .chat_content .notifi span {
@@ -253,13 +263,16 @@ body {
 }
 
 .cell_active_x {
-    background-image: url('../lib/img/red.png') !important;
-}
-
-.cell_active_y {
     background-image: url('../lib/img/blue.png') !important;
 }
 
+.cell_active_y {
+    background-image: url('../lib/img/red.png') !important;
+}
+
+.cell_active_win {
+    background-color: #e9ff2e;
+}
 
 /*Modal*/
 #box_modal {
@@ -295,6 +308,11 @@ body {
             font-weight: bold;
         }
 
+            #box_modal .box_modal_content label i {
+                color: #9a9797;
+                font-size: 10px;
+            }
+
         #box_modal .box_modal_content input {
             width: 100%;
             font-size: 12px;
@@ -324,3 +342,5 @@ body {
             margin-left: 3px;
             position: fixed;
         }
+
+/*end modal*/
