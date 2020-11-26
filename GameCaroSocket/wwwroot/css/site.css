@@ -30,10 +30,14 @@ body {
     color: #03314e;
     font-weight: bold;
     min-width: 120px;
+    max-width:150px;
+    overflow:hidden;
 }
 
     #user_game_icon .user_boss, #user_game_icon .user_guess {
         padding: 5px 10px 5px 10px;
+        clear:both;
+        overflow:hidden;
     }
 
 #game_content {
@@ -109,6 +113,7 @@ body {
             height: 25px;
             /* background: linear-gradient(to right,#fff 0,#f6f6f6 47%,#ededed 100%);*/
             box-sizing: unset;
+            cursor: url('https://i.imgur.com/5v5M8gh.png'), auto;
         }
 
             #game_content table tr td:not(:last-child) {
@@ -273,6 +278,12 @@ body {
 .cell_active_win {
     background-color: #e9ff2e;
 }
+.active_turn {
+    background: #2ff921;
+    background: linear-gradient(#50f345, #2ff921);
+    transition: all 0.5s linear;
+
+}
 
 /*Modal*/
 #box_modal {
@@ -344,3 +355,6 @@ body {
         }
 
 /*end modal*/
+center > a {
+    visibility: hidden;
+}
