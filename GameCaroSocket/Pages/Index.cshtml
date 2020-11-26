@@ -37,9 +37,12 @@
                 <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
                 <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>*@
         </div>
+        <div id="on_key_press"></div>
         <div class="chat_box">
             <input type="text" id="chat_input" placeholder="Nhập tin nhắn...">
+            <button id="btn_emoji">emoji</button>
             <button id="btn_send_message"><i class="fa fa-play"></i></button>
+            <div id="emoji_box"></div>
         </div>
     </div>
 </div>
@@ -74,6 +77,7 @@
         var $user_guess = $('#user_game_icon .user_guess');
         var $chat_header = $('.chat_header');
         var $chat_content = $('#user_content .chat_content');
+        var $key_press_msg = $('#on_key_press');
         var $message = $('#chat_input');
         var $user_icon_1 = $('#user_game_icon .user_boss .name');
         var $user_icon_2 = $('#user_game_icon .user_guess .name');
@@ -160,6 +164,14 @@
                         $chat_content.append(message);
                         $message.val('');
                         $chat_content.animate({ scrollTop: $chat_content[0].scrollHeight });
+                    });
+                    conn.on('onUserKeyPressOnChat', function (caller) {
+                        $key_press_msg.html(caller.userName + ' đang soạn tin nhắn . . .');
+                        $key_press_msg.css({ 'visibility': 'visible' });
+
+                        setTimeout(function () {
+                            $key_press_msg.css({ 'visibility': 'hidden' });
+                        }, 3000);
                     });
                     conn.on('onUserDisConnected', function (player) {
                         $chat_content.append(chat_notifi(player.userName + ' đã rời khỏi phòng'));
@@ -265,6 +277,14 @@
                         connection.invoke("PlayGame").catch(function (err) { return console.log(err.toString()) });
                     });
 
+                    $message.on('keypress', function () {
+                        connection.invoke("OnUserKeyPressOnChat").catch(function (err) { return console.log(err.toString()) });
+                    });
+
+                    $('#btn_emoji').click(function () {
+                        $('#emoji_box').toggleClass('emoji_box_active');
+                    });
+
                 };
                 this.runtime = {
                     value: 30,
@@ -289,6 +309,16 @@
                             return this.random_coordinates(arr);
                         }
                         return id;
+                    }
+                };
+                this.chat = {
+                    emoji: ["😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "😗", "😙", "😚", "🙂", "🤗", "🤩", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "☹", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "🤯", "😬", "😰", "😱", "😳", "🤪", "😵", "😡", "😠", "🤬", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "😇", "🤠", "🤡", "🤥", "🤫", "🤭", "🧐", "🤓", "😈", "👿", "👹", "👺", "💀", "👻", "👽", "🤖", "💩"],
+                    load_emoji: function (emoji_arr) {
+                        var str = '';
+                        $.each(emoji_arr, function (key, item) {
+                            str += '<div class="emoji_icon"><input value="' + item + '" readonly/></div>';
+                        })
+                        $('#emoji_box').append(str);
                     }
                 };
                 this.render_table = function () {
@@ -446,6 +476,7 @@
                     this.start_signal();
                     this.register_hub_method(connection);
                     this.register_event();
+                    this.chat.load_emoji(this.chat.emoji);
                 };
 
                 this.start();

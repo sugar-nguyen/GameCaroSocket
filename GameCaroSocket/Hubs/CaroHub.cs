@@ -105,7 +105,18 @@ namespace GameCaroSocket.Hubs
         {
             return _Rooms.SingleOrDefault(x => x.Players.Any(y => y.UserId == Context.ConnectionId));
         }
+        public async Task OnUserKeyPressOnChat()
+        {
+            var room = GetRoom();
+            if (room != null && room.Players.Count == 2)
+            {
+                var caller = GetCaller();
+                var toPlayer = GetOrtherPlayer(caller, room);
 
+                await Clients.Clients(toPlayer.UserId).onUserKeyPressOnChat(caller);
+            }
+
+        }
         private async Task<string> GeneratorId(string[] arr)
         {
             string myString = "0123456789";

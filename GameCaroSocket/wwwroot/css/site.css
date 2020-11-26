@@ -12,13 +12,12 @@ body {
 
 #game_outline {
     padding-top: 20px;
-    clear:both;
-    min-width:1366px;
+    clear: both;
+    min-width: 1366px;
 }
 
 #game_content,
-#user_game_icon
-{
+#user_game_icon {
     float: left;
 }
 
@@ -30,14 +29,14 @@ body {
     color: #03314e;
     font-weight: bold;
     min-width: 120px;
-    max-width:150px;
-    overflow:hidden;
+    max-width: 150px;
+    overflow: hidden;
 }
 
     #user_game_icon .user_boss, #user_game_icon .user_guess {
         padding: 5px 10px 5px 10px;
-        clear:both;
-        overflow:hidden;
+        clear: both;
+        overflow: hidden;
     }
 
 #game_content {
@@ -133,8 +132,8 @@ body {
     box-shadow: 5px 7px 9px 2px #064265;
     overflow-x: hidden;
     overflow-y: auto;
-    float:right;
-    margin-right:20px;
+    float: right;
+    margin-right: 20px;
 }
 
     #user_content .chat_header {
@@ -157,68 +156,76 @@ body {
             width: 0;
         }
 
-        #user_content .chat_content .message {
-            width: 100%;
-            color: #ffffff;
-            padding-top: 10px;
-            clear: both;
+    #user_content .on_key_press {
+        font-size: 10px;
+        color: #fff;
+        margin-left: 3px;
+        bottom: 0;
+        visibility: hidden;
+    }
+
+    #user_content .chat_content .message {
+        width: 100%;
+        color: #ffffff;
+        padding-top: 10px;
+        clear: both;
+    }
+
+    #user_content .chat_content .notifi {
+        text-align: center;
+        margin: 7px 0 7px 0;
+        padding: 0;
+    }
+
+        #user_content .chat_content .notifi span {
+            padding: 0 !important;
+            color: #fff;
+            background: none !important;
+            font-style: italic;
+            font-size: 11px;
         }
 
-        #user_content .chat_content .notifi {
-            text-align: center;
-            margin: 7px 0 7px 0;
-            padding: 0;
-        }
+    #user_content .chat_content .message span {
+        border-radius: 10px;
+        max-width: 80%;
+        word-break: break-all;
+    }
 
-            #user_content .chat_content .notifi span {
-                padding: 0 !important;
-                color: #fff;
-                background: none !important;
-                font-style: italic;
-                font-size: 11px;
-            }
+    #user_content .chat_content .message_1 span {
+        background: #0c5b88;
+    }
 
-        #user_content .chat_content .message span {
-            border-radius: 10px;
-            max-width: 80%;
-            word-break: break-all;
-        }
+    #user_content .chat_content .message_2 span {
+        background: #073c50;
+    }
 
-        #user_content .chat_content .message_1 span {
-            background: #0c5b88;
-        }
+    #user_content .chat_content .message_1 .fa {
+        color: red;
+    }
 
-        #user_content .chat_content .message_2 span {
-            background: #073c50;
-        }
+    #user_content .chat_content .message_2 .fa {
+        color: #e5ff0e;
+    }
 
-        #user_content .chat_content .message_1 .fa {
-            color: red;
-        }
+    #user_content .chat_content .message_1 span {
+        padding: 3px 10px 3px 5px;
+        margin-left: 3px;
+    }
 
-        #user_content .chat_content .message_2 .fa {
-            color: #e5ff0e;
-        }
+    #user_content .chat_content .message_1 span, #user_content .chat_content .message_1 .fa {
+        float: left;
+        line-height: unset;
+    }
 
-        #user_content .chat_content .message_1 span {
-            padding: 3px 10px 3px 5px;
-            margin-left: 3px;
-        }
+    #user_content .chat_content .message_2 span {
+        padding: 3px 5px 3px 10px;
+        margin-right: 3px;
+    }
 
-        #user_content .chat_content .message_1 span, #user_content .chat_content .message_1 .fa {
-            float: left;
-            line-height: unset;
-        }
-
-        #user_content .chat_content .message_2 span {
-            padding: 3px 5px 3px 10px;
-            margin-right: 3px;
-        }
-
-        #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 .fa {
-            float: right;
-            line-height: unset;
-        }
+    #user_content .chat_content .message_2 span, #user_content .chat_content .message_2 .fa {
+        float: right;
+        line-height: unset;
+    }
 
     #user_content .chat_box {
         position: relative;
@@ -257,6 +264,49 @@ body {
                 color: #fff;
             }
 
+        #user_content .chat_box #emoji_box {
+            position: absolute;
+            bottom: 50px;
+            background: #fff;
+            right: 0;
+            transition: all 0.8s linear;
+            display:none;
+        }
+        .emoji_box_active{
+            display:block !important;
+        }
+
+            #user_content .chat_box #emoji_box .emoji_icon {
+                display: inline-block;
+                width: 30px;
+                height: 20px;
+            }
+
+                #user_content .chat_box #emoji_box .emoji_icon > input {
+                    font-size: 15px;
+                    line-height: 52px;
+                    height: 20px;
+                    overflow: visible;
+                    width: 100%;
+                    cursor: pointer;
+                    position: relative;
+                    border: none;
+                    border-radius: 6px;
+                    text-align: center;
+                    z-index: 10;
+                    font-weight: 400;
+                }
+
+                    #user_content .chat_box #emoji_box .emoji_icon > input:focus {
+                        outline: none;
+                    }
+
+        #user_content .chat_box #btn_emoji {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
 .clear-both {
     clear: both;
 }
@@ -278,11 +328,11 @@ body {
 .cell_active_win {
     background-color: #e9ff2e;
 }
+
 .active_turn {
     background: #2ff921;
     background: linear-gradient(#50f345, #2ff921);
     transition: all 0.5s linear;
-
 }
 
 /*Modal*/

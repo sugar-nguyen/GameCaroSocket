@@ -29,9 +29,11 @@ namespace GameCaroSocket.Hubs
         Task onGuessJoinRoom(string roomId, Player guess, Player boss);
         Task userNameExists();
         Task roomIdNotExists();
+        Task onUserKeyPressOnChat(Player caller);
         Task onUserSendMessage(Player fromPlayer, Player toPlayer, string msg, bool isCaller = true);
         Task onUserDisConnected(Player player);
         Task playGame();
+       
 
         #region Caro
         Task onUserPickChess(Player caller, string coordinates);
