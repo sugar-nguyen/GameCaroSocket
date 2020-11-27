@@ -37,10 +37,10 @@
                 <div class="message message_1"><i class="fa fa-user-tie"></i><span>Xin chào</span></div>
                 <div class="message message_2"><i class="fa fa-user-tie"></i><span>cmm</span></div>*@
         </div>
-        <div id="on_key_press"></div>
+        <div id="on_key_press">&nbsp;</div>
         <div class="chat_box">
             <input type="text" id="chat_input" placeholder="Nhập tin nhắn...">
-            <button id="btn_emoji">emoji</button>
+            <button id="btn_emoji"><span>😀</span></button>
             <button id="btn_send_message"><i class="fa fa-play"></i></button>
             <div id="emoji_box"></div>
         </div>
@@ -81,6 +81,9 @@
         var $message = $('#chat_input');
         var $user_icon_1 = $('#user_game_icon .user_boss .name');
         var $user_icon_2 = $('#user_game_icon .user_guess .name');
+        var $btn_emoji = $('#btn_emoji');
+        var $emoji_box = $('#emoji_box');
+       
         var btnSendMsg = $('#btn_send_message');
         var chat_notifi = function (message) {
             return '<div class="message notifi"><span>' + message + '</span></div>';
@@ -281,9 +284,15 @@
                         connection.invoke("OnUserKeyPressOnChat").catch(function (err) { return console.log(err.toString()) });
                     });
 
-                    $('#btn_emoji').click(function () {
-                        $('#emoji_box').toggleClass('emoji_box_active');
+                    $message.on('focus', function () {
+                        $emoji_box.removeClass('emoji_box_active');
                     });
+
+                    $btn_emoji.click(function () {
+                        $emoji_box.toggleClass('emoji_box_active');
+                    });
+
+                  
 
                 };
                 this.runtime = {
@@ -318,7 +327,15 @@
                         $.each(emoji_arr, function (key, item) {
                             str += '<div class="emoji_icon"><input value="' + item + '" readonly/></div>';
                         })
-                        $('#emoji_box').append(str);
+
+                        $emoji_box.append(str);
+
+                        var emoji_icon = $('#emoji_box .emoji_icon'); 
+                        emoji_icon.click(function () {
+                            var icon = $(this).children('input').val();
+                            $message.val($message.val() + icon);
+                            $emoji_box.removeClass('emoji_box_active');
+                        })
                     }
                 };
                 this.render_table = function () {
